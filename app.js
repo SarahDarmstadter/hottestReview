@@ -16,9 +16,9 @@ mongoose.connect('mongodb+srv://caputDraconis:caputDraconis@cluster0.prp1w.mongo
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-  const app = express();
+const app = express();
 
-  app.use(helmet());
+  
 /*Helmet n’est actuellement qu’une collection de neuf fonctions middleware plus petites qui définissent des en-têtes HTTP liés à la sécurité :
 
 csp définit l’en-tête Content-Security-Policy pour la protection contre les attaques de type cross-site scripting et autres injections intersites.
@@ -30,6 +30,8 @@ noSniff définit X-Content-Type-Options pour protéger les navigateurs du renifl
 frameguard définit l’en-tête X-Frame-Options pour fournir une protection clickjacking.
 xssFilter définit X-XSS-Protection afin d’activer le filtre de script intersites (XSS) dans les navigateurs Web les plus récents.
 source : https://expressjs.com/fr/advanced/best-practice-security.html */
+app.use(helmet());
+
 
 //ajout d'un middleware pour eviter les erreurs de CORS. Ce M. s'appliquera à toutes les routes. 
 app.use((req, res, next) => {
@@ -45,8 +47,8 @@ app.use((req, res, next) => {
   Pour éviter ce problème, utilisez des noms de cookie génériques, par exemple à l’aide du middleware express-session 
   SOURCE : https://expressjs.com/fr/advanced/best-practice-security.html*/
 
-  app.set('trust proxy', 1) // trust first proxy (parce que si on met secured : true, mais qu'on est pas sur httpS, cela ne marchera)
-  app.use(session({
+app.set('trust proxy', 1) // trust first proxy (parce que si on met secured : true, mais qu'on est pas sur httpS, cela ne marchera)
+app.use(session({
     secret: 'userId', //On peut mettre la string que l'on souhaite ? 
     resave: false,
     saveUninitialized: true,
@@ -57,11 +59,13 @@ app.use((req, res, next) => {
      }
   }));
   
+//Pour gérer la demande POST provenant de l'application front-end, nous devrons être capables d'extraire l'objet JSON de la demande
+app.use(bodyParser.json());
 
-  app.use(bodyParser.json());
-  app.use('/image', express.static(path.join(__dirname, 'image')));
-  app.use('/api/sauces', SaucesRoutes);
-  app.use('/api/auth', userRoutes);
+app.use('/image', express.static(path.join(__dirname, 'image')));
+  
+app.use('/api/sauces', SaucesRoutes);
+app.use('/api/auth', userRoutes);
 
 
 module.exports = app;
