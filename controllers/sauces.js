@@ -1,10 +1,16 @@
+// Fichier de toute la logique métier des modèles
+
+//Importation du modele de sauce
 const Sauce = require('../models/Sauce');
+
+//Importation de file system(fs) pour ne pas saturer le serveur de fichiers inutiles après suppression ou modification
 const fs = require('fs');
 
 
 exports.createSauce =  (req, res, next) => {
+//Les données du frontend sont sous format form-data, on les convertit en Js
     const sauceObject = JSON.parse(req.body.sauce);
-    console.log('1',sauceObject);
+//on supprime l'id généré par MongoDB pour pouvoir créer une nouvelle instance du modele sauce qui ne contient pas l'id
     delete sauceObject._id;
     const sauce = new Sauce({
             ...sauceObject,
@@ -25,7 +31,9 @@ exports.modifySauce = (req, res, next) =>{
     {
       ...JSON.parse(req.body.sauce),
       imageUrl: `${req.protocol}://${req.get('host')}/image/${req.file.filename}`
-    } : { ...req.body };
+    } : 
+    { ...req.body };
+
     Sauce.updateOne({_id: req.params.id}, {...sauceObject, _id: req.params.id})
         .then(()=> res.status(200).json({message: 'sauce modifiée'}))
         .catch(error => res.status(400).json({ error }))
@@ -67,7 +75,7 @@ exports.likeDislike = (req, res, next) => {
   // on va updater les informations relatives à la sauce. On aime ou on n'aime pas. 
   //updateOne prend plusieurs parametres.
   //param1 : elt de comparaison
-  //param2 : les changts à implemter 
+  //param2 : les changts à implementer 
 
       // ON AIME LA SAUCE
       if (like === 1) {
@@ -91,7 +99,7 @@ exports.likeDislike = (req, res, next) => {
 
       // ON ANNULE UN LIKE OU UN DISLIKE
       if (like === 0) { 
-        // on idengtifie la sauce à modifier
+        // on identifie la sauce à modifier
         Sauce.findOne({_id: req.params.id})
           .then((sauce) => {
             // on verifie si l'utilisateur a liké la sauce

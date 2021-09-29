@@ -3,12 +3,17 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const SaucesRoutes = require('./routes/sauces')
 const userRoutes = require('./routes/user');
+
+//Plugin qui sert dans l'upload des images et permet de travailler avec les répertoires et chemin de fichier
 const path = require('path');
+
+//pluggin de sécurité contre les attaques cross_site, clickjacking, XSS
 const helmet = require('helmet');
+
 const session = require('express-session');
 const expiryDate = new Date( Date.now() + 60 * 60 * 18000 ); // 18 hours
 
-
+//Connexion de la BDD
 mongoose.connect('mongodb+srv://caputDraconis:caputDraconis@cluster0.prp1w.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
   { useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -33,23 +38,26 @@ source : https://expressjs.com/fr/advanced/best-practice-security.html */
 app.use(helmet());
 
 
-//ajout d'un middleware pour eviter les erreurs de CORS. Ce M. s'appliquera à toutes les routes. 
+//ajout d'un middleware pour eviter les erreurs de CORS. 
+//Ce M. s'appliquera à toutes les routes. 
 app.use((req, res, next) => {
+//On indique que les ressources peuvent être partagées depuis n'importe quelle origine
     res.setHeader('Access-Control-Allow-Origin', '*');
+
+//On indique les entêtes qui seront utilisées après la pré-vérification cross-origin afin de donner l'autorisation 
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+
+//On indique les méthodes autorisées pour les requêtes HTTP
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
   });
 
-  /*L’utilisation d’un nom de cookie de session par défaut risque d’ouvrir votre application aux attaques. 
-  Le problème de sécurité qui en découle est similaire à X-Powered-By : une personne potentiellement malveillante 
-  peut l’utiliser pour s’identifier auprès du serveur et cibler ses attaques en conséquence.
-  Pour éviter ce problème, utilisez des noms de cookie génériques, par exemple à l’aide du middleware express-session 
-  SOURCE : https://expressjs.com/fr/advanced/best-practice-security.html*/
+ // trust first proxy (parce que si on met secured : true, mais qu'on est pas sur httpS, cela ne marchera)
+app.set('trust proxy', 1);
 
-app.set('trust proxy', 1) // trust first proxy (parce que si on met secured : true, mais qu'on est pas sur httpS, cela ne marchera)
+//Options pour sécuriser les cookies
 app.use(session({
-    secret: 'userId', //On peut mettre la string que l'on souhaite ? 
+    secret: 'userId', 
     resave: false,
     saveUninitialized: true,
     cookie: { 

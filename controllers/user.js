@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const MaskData = require('maskdata');
 
 exports.signup = (req, res, next) => {
+
     bcrypt.hash(req.body.password, 10)
     .then(hash => {
         const user = new User({
@@ -51,9 +52,7 @@ exports.getProfil = (req, res, next) => {
     };
 
     const email = req.body.email;
-    console.log(email);
     const maskedEmail = MaskData.maskEmail2(email, emailMask2Options);
-    console.log(maskedEmail)
     
     User.findOne({email : req.body.email})
     .then(user =>
