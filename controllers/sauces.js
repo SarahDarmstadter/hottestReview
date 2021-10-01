@@ -26,17 +26,25 @@ exports.createSauce =  (req, res, next) => {
       })); 
       };
 
-exports.modifySauce = (req, res, next) =>{
+exports.modifySauce = (req, res, next) =>{ 
     const sauceObject = req.file ?
     {
       ...JSON.parse(req.body.sauce),
+// req.protocol(http ou https) puis req.get('host') c'est la racine du serveur 
       imageUrl: `${req.protocol}://${req.get('host')}/image/${req.file.filename}`
     } : 
     { ...req.body };
 
-    Sauce.updateOne({_id: req.params.id}, {...sauceObject, _id: req.params.id})
-        .then(()=> res.status(200).json({message: 'sauce modifiée'}))
-        .catch(error => res.status(400).json({ error }))
+    Sauce.findOne({ _id: req.params.id })
+      .then(sauce => {
+        const filename = sauce.imageUrl.split('/image/')[1];
+        fs.unlink(`image/${filename}`, () => {
+          Sauce.updateOne({_id: req.params.id}, {...sauceObject, _id: req.params.id})
+            .then(()=> res.status(200).json({message: 'sauce modifiée'}))
+            .catch(error => res.status(400).json({ error }))
+          })
+        })
+        .catch(error => res.status(500).json({ error }));
   };
 
   exports.deleteSauce = (req, res, next) => {
